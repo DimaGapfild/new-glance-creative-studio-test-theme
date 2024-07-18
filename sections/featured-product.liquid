@@ -1,6 +1,11 @@
 {%- liquid
   assign product = section.settings.product
+  assign is_modal_on = section.settings.modal_popup_switcher
+  assign modal_products_list = section.settings.modal_popup_products_list | split: ","
+  assign modal_products_list_length = modal_products_list | size
 -%}
+
+
 
 <product-info
   data-section="{{ section.id }}"
@@ -444,6 +449,159 @@
       </div>
       {% render 'product-media-modal', product: product, variant_images: variant_images %}
     </div>
+    {% if is_modal_on %}
+      <modal-popup>
+        <div class="modal-popup-container">
+          <div class="modal-popup-image">
+            <img
+              src="{{ section.settings.modal_popup_image | image_url: width: 450 }}"
+              alt="{{ section.settings.modal_popup_title | escape }}"
+              width="100%"
+              height="auto"
+              loading="lazy"
+            >
+          </div>
+          <div class="modal-popup-content">
+            <div class="modal-popup-title">{{ section.settings.modal_popup_title }}</div>
+            <div class="modal-popup-subtitle">{{ section.settings.modal_popup_subtitle }}</div>
+            <div class="modal-popup-products-list">
+              {% if modal_products_list_length > 0 %}
+                {% for product_handle in modal_products_list %}
+                  {%  assign product_handle_striped =  product_handle | strip%}
+                  {%  assign product =  all_products[product_handle_striped]%}
+                  <div class="modal-popup-product-block">
+                    <div class="modal-popup-product-image">
+                      <img
+                        src="{{ product.featured_image | image_url: width: 100 }}"
+                        alt="{{ product.featured_image.alt | escape }}"
+                        width="{{ 88 }}"
+                        height="{{ 100 }}"
+                        loading="lazy"
+                      >
+                    </div>
+                    <div class="modal-popup-product-info">
+                      <div class="modal-popup-product-title">
+                        {{ product.title }}
+                      </div>
+                      <div>
+                        {{ product.vendor }}
+                      </div>
+                      {% if product.sku != blank %}
+                        <div>
+                          SKU: {{ product.sku }}
+                        </div>
+                      {% endif %}
+                      <div class="modal-popup-product-price">
+                        <span>
+                          {{ product.first_available_variant.price | money }}
+                        </span>
+                        <span class="original">
+                          {{ product.first_available_variant.compare_at_price | money }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            </div>
+            <div class="buttons-row">
+              <button>Add to Cart</button>
+              <button class="outlined">Continue to the Cart</button>
+            </div>
+            <p>modal_popup_show_only_once_per_customer - {{ section.settings.modal_popup_show_only_once_per_customer }}</p>
+          </div>
+        </div>
+      </modal-popup>
+
+      {%- style -%}
+        modal-popup {
+          position: fixed;
+          top: 0;
+          left: 0;
+          background-color: rgba(0, 0, 0, 0.5);
+          width: 100%;
+          height: 100%;
+          z-index: 10;
+          padding: 15px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .modal-popup-container {
+          max-width: 918px;
+          padding: 40px;
+          display: flex;
+          gap: 10px;
+          border: solid 1px rgba(245, 245, 245, 1);
+          background-color: rgba(255, 255, 255, 1);
+        }
+        .modal-popup-container > div {
+          flex: 1;
+        }
+        .modal-popup-content {
+          display: flex;
+          flex-direction: column;
+          gap: 32px;
+        }
+        .modal-popup-title{
+          font-size: 14px;
+          font-weight: 700;
+          line-height: 24px;
+          text-transform: uppercase;
+          color: rgba(5, 17, 127, 1);
+        }
+        .modal-popup-subtitle > p{
+          margin: 0;
+        }
+        .modal-popup-content .buttons-row {
+
+        }
+        .modal-popup-content .buttons-row button {
+          height: 44px;
+          padding: 10px 40px 10px 40px;
+          background-color: rgba(5, 17, 127, 1);
+          border-width: 1px;
+          border-style: solid;
+          border-color: rgba(5, 17, 127, 1);
+          color: rgba(255,255,255,1);
+          cursor: pointer;
+          font-size: 16px;
+          font-weight: 500;
+          line-height: 24px;
+        }
+        .modal-popup-content .buttons-row button.outlined {
+          background-color: rgba(255,255,255,1);
+          border-color: rgba(5, 17, 127, 1);
+          color: rgba(5, 17, 127, 1);
+        }
+        .modal-popup-product-block{
+          display: flex;
+          gap: 10px;
+        }
+        .modal-popup-product-title{
+          font-size: 14px;
+          font-weight: 700;
+          line-height: 24px;
+        }
+        .modal-popup-product-image img{
+          object-fit: cover;
+        }
+        .modal-popup-product-price{
+          display: flex;
+          gap: 10px;
+          font-size: 18px;
+          font-weight: 700;
+          line-height: 24px;
+          color: rgba(5, 17, 127, 1);
+        }
+        .modal-popup-product-price .original{
+          font-weight: 400;
+          color: rgba(102, 102, 102, 1);
+          text-decoration: line-through;
+        }
+      {%- endstyle -%}
+
+    {% endif %}
   </section>
 
   <script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
@@ -1459,6 +1617,45 @@
       "unit": "px",
       "label": "t:sections.all.padding.padding_bottom",
       "default": 36
+    },
+    {
+      "type": "header",
+      "content": "Modal popup settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "modal_popup_switcher",
+      "default": false,
+      "label": "ON/OFF modal popup for section"
+    },
+    {
+      "type": "checkbox",
+      "id": "modal_popup_show_only_once_per_customer",
+      "default": false,
+      "label": "Show only once per customer"
+    },
+    {
+      "type": "image_picker",
+      "id": "modal_popup_image",
+      "label": "Modal Popup Image"
+    },
+    {
+      "type": "text",
+      "id": "modal_popup_title",
+      "label": "Modal Popup Heading",
+      "default": "Best Title ever"
+    },
+    {
+      "type": "richtext",
+      "id": "modal_popup_subtitle",
+      "label": "Modal Popup Subtitle"
+    },
+    {
+      "type": "text",
+      "id": "modal_popup_products_list",
+      "label": "Modal Popup Products List",
+      "default": "handle",
+      "info": "Please add a list of product handles with comma as a separator"
     }
   ],
   "presets": [
