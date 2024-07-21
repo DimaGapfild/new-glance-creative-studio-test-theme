@@ -2,10 +2,7 @@
   assign product = section.settings.product
   assign is_modal_on = section.settings.modal_popup_switcher
   assign modal_products_list = section.settings.modal_popup_products_list | split: ","
-  assign modal_products_list_length = modal_products_list | size
 -%}
-
-
 
 <product-info
   data-section="{{ section.id }}"
@@ -383,12 +380,22 @@
                     product_form_id: product_form_id
                   %}
                 {%- when 'buy_buttons' -%}
-                  {%- render 'buy-buttons',
-                    block: block,
-                    product: product,
-                    product_form_id: product_form_id,
-                    section_id: section.id
-                  -%}
+                    {% if is_modal_on %}
+                      <button
+                        id="ModalOpener-{{ section.id }}"
+                        data-modal-popup-opener-id="modal-popup-opener-{{section.id}}"
+                        class="product-form__submit button button--full-width button--primary hidden"
+                        >
+                        {{ 'products.product.add_to_cart' | t }}
+                      </button>
+                    {% endif %}
+                    {%- render 'buy-buttons',
+                      block: block,
+                      product: product,
+                      product_form_id: product_form_id,
+                      section_id: section.id,
+                      is_modul_popup_on: is_modal_on
+                    -%}
                 {%- when 'custom_liquid' -%}
                   {{ block.settings.custom_liquid }}
                 {%- when 'rating' -%}
@@ -450,7 +457,7 @@
       {% render 'product-media-modal', product: product, variant_images: variant_images %}
     </div>
     {% if is_modal_on %}
-      <modal-popup>
+      <modal-popup class="modal-popup-{{section.id}}">
         <div class="modal-popup-container">
           <div class="modal-popup-image">
             <img
@@ -465,50 +472,50 @@
             <div class="modal-popup-title">{{ section.settings.modal_popup_title }}</div>
             <div class="modal-popup-subtitle">{{ section.settings.modal_popup_subtitle }}</div>
             <div class="modal-popup-products-list">
-              {% if modal_products_list_length > 0 %}
-                {% for product_handle in modal_products_list %}
-                  {%  assign product_handle_striped =  product_handle | strip%}
-                  {%  assign product =  all_products[product_handle_striped]%}
-                  <div class="modal-popup-product-block">
-                    <div class="modal-popup-product-image">
-                      <img
-                        src="{{ product.featured_image | image_url: width: 100 }}"
-                        alt="{{ product.featured_image.alt | escape }}"
-                        width="{{ 88 }}"
-                        height="{{ 100 }}"
-                        loading="lazy"
-                      >
+              {% for product_handle in modal_products_list %}
+                {% assign product_handle_striped =  product_handle | strip %}
+                {% assign product =  all_products[product_handle_striped]%}
+                {% if product == blank %}
+                  {% continue %}
+                {% endif %}
+                <div class="modal-popup-product-block" data-product-variant-id="{{product.selected_or_first_available_variant.id}}">
+                  <div class="modal-popup-product-image">
+                    <img
+                      src="{{ product.featured_image | image_url: width: 100 }}"
+                      alt="{{ product.featured_image.alt | escape }}"
+                      width="{{ 88 }}"
+                      height="{{ 100 }}"
+                      loading="lazy"
+                    >
+                  </div>
+                  <div class="modal-popup-product-info">
+                    <div class="modal-popup-product-title">
+                      {{ product.title }}
                     </div>
-                    <div class="modal-popup-product-info">
-                      <div class="modal-popup-product-title">
-                        {{ product.title }}
-                      </div>
+                    <div>
+                      {{ product.metafields.custom.short_description }}
+                    </div>
+                    {% if product.sku != blank %}
                       <div>
-                        {{ product.vendor }}
+                        SKU: {{ product.sku }}
                       </div>
-                      {% if product.sku != blank %}
-                        <div>
-                          SKU: {{ product.sku }}
-                        </div>
-                      {% endif %}
-                      <div class="modal-popup-product-price">
-                        <span>
-                          {{ product.first_available_variant.price | money }}
-                        </span>
-                        <span class="original">
-                          {{ product.first_available_variant.compare_at_price | money }}
-                        </span>
-                      </div>
+                    {% endif %}
+                    <div class="modal-popup-product-price">
+                      <span>
+                        {{ product.first_available_variant.price | money }}
+                      </span>
+                      <span class="original">
+                        {{ product.first_available_variant.compare_at_price | money }}
+                      </span>
                     </div>
                   </div>
-                {% endfor %}
-              {% endif %}
+                </div>
+              {% endfor %}
             </div>
             <div class="buttons-row">
-              <button>Add to Cart</button>
-              <button class="outlined">Continue to the Cart</button>
+              <button class="add-to-cart-btn">Add to Cart</button>
+              <button class="outlined continue-to-the-cart-btn">Continue to the Cart</button>
             </div>
-            <p>modal_popup_show_only_once_per_customer - {{ section.settings.modal_popup_show_only_once_per_customer }}</p>
           </div>
         </div>
       </modal-popup>
@@ -526,6 +533,12 @@
           display: flex;
           justify-content: center;
           align-items: center;
+          opacity: 0;
+          visibility: hidden;
+        }
+        modal-popup.active {
+          opacity: 1;
+          visibility: visible;
         }
         .modal-popup-container {
           max-width: 918px;
@@ -601,6 +614,123 @@
         }
       {%- endstyle -%}
 
+      {% liquid
+        assign uniq_section_id = section.id | replace: '-', '' | replace: '_', ''
+      %}
+
+      <script>
+        let myCustomCookieObj;
+        const modalOpener{{uniq_section_id}} = document.querySelector("#ModalOpener-{{ section.id }}")
+        const modalOpen{{uniq_section_id}} = () => {
+          const modal = document.querySelector(".modal-popup-{{section.id}}")
+          modal.classList.add("active")
+        }
+        modalOpener{{uniq_section_id}} && modalOpener{{uniq_section_id}}.addEventListener("click", modalOpen{{uniq_section_id}})
+        class Cookie {
+            createExpires = () => {
+                const date = new Date();
+                date.setTime(date.getTime() + 365 * 24 * 60 * 60 * 1000);
+                return `; expires=${date.toGMTString()}`;
+            }
+
+            createCookie = ({ name, value }) => {
+                document.cookie = `${name}=${value}${this.createExpires()};path=/`;
+            }
+
+            readCookie = (name) => {
+                const nameEQ = name + "=";
+                const ca = document.cookie.split(";");
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) === " ") c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) === 0) {
+                        return c.substring(nameEQ.length, c.length);
+                    }
+                }
+                return null;
+            }
+
+            checkCookies = (name) => this.readCookie(name) ? true : false;
+        }
+
+        {% if section.settings.modal_popup_show_only_once_per_customer %}
+          if (!myCustomCookieObj) {
+            myCustomCookieObj = new Cookie()
+          }
+
+          const checkShowOncePerCustomerCookies = () => {
+            const checkCookieName = "showOncePerCustomer"
+            const cookieObj = {
+              name: checkCookieName,
+              value: true
+            };
+            if (myCustomCookieObj.checkCookies(checkCookieName)) {
+              document.querySelector("[data-section-id='{{ section.id }}']").classList.remove("hidden")
+            } else {
+              document.querySelector("#ModalOpener-{{ section.id }}").classList.remove("hidden");
+              myCustomCookieObj.createCookie(cookieObj)
+            }
+          }
+
+          checkShowOncePerCustomerCookies()
+        {% else %}
+          document.querySelector("#ModalOpener-{{ section.id }}").classList.remove("hidden")
+        {% endif %}
+
+
+        class ModalPopup extends HTMLElement {
+          constructor() {
+            super();
+            this.addEventListener("click", this.handleOverlayClick)
+            this.addToCartBtn = this.querySelector(".add-to-cart-btn")
+            this.continueToTheCartBtn = this.querySelector(".continue-to-the-cart-btn")
+            this.parentSection = this.closest("product-info")
+            this.nativeAddToCartBtn = this.parentSection.querySelector("#ProductSubmitButton-{{ section.id }}")
+            this.addToCartBtn.addEventListener("click", this.handleAddToCartClick)
+            this.continueToTheCartBtn.addEventListener("click", this.handleContinueToTheCartClick)
+            this.productBlockNodes = this.querySelectorAll(".modal-popup-product-block")
+            this.variantIds = this.productBlockNodes
+            ? Array.from(this.querySelectorAll(".modal-popup-product-block"))
+              .map((node) => Number(node.dataset.productVariantId))
+            : []
+          }
+          closeModal = () => {
+            this.classList.remove("active")
+          }
+          handleOverlayClick = (e) => {
+            if (e.target === this) {this.closeModal()}
+          }
+          handleAddToCartClick = () => {
+            const items = this.variantIds.map((variantId) => ({
+              id:variantId,
+              quantity: 1
+            }))
+            const data = {
+                items: this.variantIds.map((variantId) => ({
+                        id:variantId,
+                        quantity: 1
+                      }))
+            };
+            this.addItemsToTheCart(data)
+            this.closeModal()
+          }
+          handleContinueToTheCartClick = () => {
+            this.nativeAddToCartBtn.click()
+            this.closeModal()
+          }
+          createPostRequestBody = (data) => ({
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data),
+          })
+          addItemsToTheCart = (data) => {
+              const url = `/cart/add.js`;
+              fetch(url, this.createPostRequestBody(data))
+                .then(() => this.nativeAddToCartBtn.click());
+          };
+        }
+        customElements.define("modal-popup", ModalPopup);
+      </script>
     {% endif %}
   </section>
 
@@ -1654,7 +1784,6 @@
       "type": "text",
       "id": "modal_popup_products_list",
       "label": "Modal Popup Products List",
-      "default": "handle",
       "info": "Please add a list of product handles with comma as a separator"
     }
   ],
