@@ -1,0 +1,42 @@
+<form id="bundle-builder" action="">
+  <div>
+    <label for="green-group">Green</label>
+      <select name="green-group" id="green-group">
+        {% for product in collection.all.products %}
+          {% if product.tags contains "green_group" %}
+            {% assign variant = product.selected_or_first_available_variant %}
+            <option value="{{ variant.id }}">{{ product.title }} - {{ variant.price | money }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="blue-group">Blue</label>
+      <select name="blue-group" id="blue-group">
+        {% for product in collection.all.products %}
+          {% if product.tags contains "blue_group" %}
+            {% assign variant = product.selected_or_first_available_variant %}
+            <option value="{{ variant.id }}">{{ product.title }} - {{ variant.price | money }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+    <button>Submit</button>
+</form>
+
+
+{% schema %}
+  {
+    "name": "Bundle Builder",
+    "tag": "section",
+    "class": "bundle-builder",
+    "settings": [
+
+    ],
+    "presets": [
+      {
+        "name": "Bundle Builder"
+      }
+    ]
+  }
+  {% endschema %}
