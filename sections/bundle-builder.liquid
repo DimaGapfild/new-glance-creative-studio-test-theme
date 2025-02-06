@@ -1,8 +1,8 @@
-<form id="bundle-builder" action="">
+<form id="bundle-builder">
   <div>
     <label for="green-group">Green</label>
       <select name="green-group" id="green-group">
-        {% for product in collection.all.products %}
+        {% for product in collections.all.products %}
           {% if product.tags contains "green_group" %}
             {% assign variant = product.selected_or_first_available_variant %}
             <option value="{{ variant.id }}">{{ product.title }} - {{ variant.price | money }}</option>
@@ -13,7 +13,7 @@
     <div>
       <label for="blue-group">Blue</label>
       <select name="blue-group" id="blue-group">
-        {% for product in collection.all.products %}
+        {% for product in collections.all.products %}
           {% if product.tags contains "blue_group" %}
             {% assign variant = product.selected_or_first_available_variant %}
             <option value="{{ variant.id }}">{{ product.title }} - {{ variant.price | money }}</option>
@@ -23,6 +23,44 @@
     </div>
     <button>Submit</button>
 </form>
+
+<script>
+  const form = document.getElementById("bundle-builder");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const greenGroup = document.getElementById("green-group").value;
+    const blueGroup = document.getElementById("blue-group").value;
+    const bundleId = new Date().getTime();
+
+    await fetch("/cart/add.js", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        items: [
+          {
+            id: greenGroup,
+            quantity: 1,
+            properties: {
+              _bundleId: bundleId
+            },
+          },
+          {
+            id: blueGroup,
+            quantity: 1,
+            properties: {
+              _bundleId: bundleId
+            },
+          },
+        ],
+      }),
+    });
+
+    window.location.reload()
+
+  });
+</script>
 
 
 {% schema %}

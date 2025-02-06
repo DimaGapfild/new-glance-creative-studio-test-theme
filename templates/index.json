@@ -9,6 +9,11 @@
 */
 {
   "sections": {
+    "bundle_builder": {
+      "type": "bundle-builder",
+      "settings": {
+      }
+    },
     "image_banner": {
       "type": "image-banner",
       "blocks": {
@@ -155,6 +160,7 @@
     }
   },
   "order": [
+    "bundle_builder",
     "image_banner",
     "featured_collection",
     "featured_product_aWT4b4"
