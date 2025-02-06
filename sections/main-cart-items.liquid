@@ -102,7 +102,12 @@
                         <p class="caption-with-letter-spacing">{{ item.product.vendor }}</p>
                       {%- endif -%}
 
-                      <a href="{{ item.url }}" class="cart-item__name h4 break">{{ item.title | default: item.product.title }}</a>
+                      <a href="{{ item.url }}" class="cart-item__name h4 break">
+                        {% if item.item_components > 0 %}
+                          {{ item.title | escape }}
+                        {% else %}
+                          {{ item.product.title | escape }}
+                        {% endif %}</a>
 
                       {%- if item.original_price != item.final_price -%}
                         <div class="cart-item__discounted-prices">
