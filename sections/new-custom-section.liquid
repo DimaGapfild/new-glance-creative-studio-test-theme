@@ -1,0 +1,331 @@
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top_desktop }}px;
+    padding-bottom: {{ section.settings.padding_bottom_desktop }}px;
+  }
+  .new-section-{{ section.id }}-content {
+    height: {{ section.settings.desktop_height }}vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: {{ section.settings.content_position }};
+    overflow: hidden;
+    padding: 0 40px;
+  }
+  .new-section-{{ section.id }}-title {
+    font-size: {{ section.settings.desktop_font_size }}px;
+    font-weight: {{ section.settings.title_font_weight }};
+    color: {{ section.settings.title_text_color }};
+  }
+  .section-{{ section.id }}-image {
+    width: 100%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+  }
+  .new-section-{{ section.id }}-cta-button {
+    background-color: {{ section.settings.cta_bg_color }};
+    color: {{ section.settings.cta_text_color }};
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin-top: 10px;
+    cursor: pointer;
+  }
+  .section-{{ section.id }}-mobile-image {
+    display: none;
+    background-image: url({{ section.settings.mobile_image | img_url: 'master' }});
+    background-position: {{ section.settings.mobile_image_position }};
+  }
+  .section-{{ section.id }}-desktop-image {
+    display: block;
+    background-image: url({{ section.settings.desktop_image | img_url: 'master' }});
+    background-position: {{ section.settings.desktop_image_position }};
+  }
+  @media (max-width: 768px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top_mobile }}px;
+      padding-bottom: {{ section.settings.padding_bottom_mobile }}px;
+    }
+    .new-section-{{ section.id }}-content {
+      height: {{ section.settings.mobile_height }}vh;
+      padding: 0 20px;
+    }
+    .new-section-{{ section.id }}-title {
+      font-size: {{ section.settings.mobile_font_size }}px;
+    }
+    .section-{{ section.id }}-mobile-image {
+      display: block;
+    }
+    .section-{{ section.id }}-desktop-image {
+      display: none;
+    }
+  }
+{%- endstyle -%}
+
+
+<div class="section-{{ section.id }}-padding">
+    <div class="new-section-{{ section.id }}-content">
+        <div class="new-section-{{ section.id }}-title">
+          {{ section.settings.title }}
+        </div>
+        <div class="new-section-{{ section.id }}-cta-button">
+          {{ section.settings.cta_button }}
+        </div>
+    </div>
+  <div class="section-{{ section.id }}-image section-{{ section.id }}-desktop-image">
+  </div>
+  <div class="section-{{ section.id }}-image section-{{ section.id }}-mobile-image">
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "new custom section",
+  "tag": "section",
+  "class": "new-custom-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Section height"
+    },
+    {
+      "type": "range",
+      "id": "desktop_height",
+      "min": 10,
+      "max": 100,
+      "step": 10,
+      "unit": "vh",
+      "label": "Desktop Height",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "mobile_height",
+      "min": 10,
+      "max": 100,
+      "step": 10,
+      "unit": "vh",
+      "label": "Mobile Height",
+      "default": 10
+    },
+    {
+      "type": "header",
+      "content": "Desktop Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "desktop_image",
+      "label": "Desktop Image"
+    },
+    {
+      "type":"select",
+      "id":"desktop_image_position",
+      "label":"Desktop Image Position",
+      "options":[
+        {
+          "value":"left",
+          "label":"Left"
+        },
+        {
+          "value":"center",
+          "label":"Center"
+        },
+        {
+          "value":"right",
+          "label":"Right"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Mobile Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image",
+      "label": "Mobile Image"
+    },
+    {
+      "type":"select",
+      "id":"mobile_image_position",
+      "label":"Mobile Image Position",
+      "options":[
+        {
+          "value":"left",
+          "label":"Left"
+        },
+        {
+          "value":"center",
+          "label":"Center"
+        },
+        {
+          "value":"right",
+          "label":"Right"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Content Settings"
+    },
+    {
+      "type":"select",
+      "id":"content_position",
+      "label":"Content position",
+      "options":[
+        {
+          "value":"start",
+          "label":"Left"
+        },
+        {
+          "value":"center",
+          "label":"Center"
+        },
+        {
+          "value":"end",
+          "label":"Right"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Section Title Settings"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "New Section Title",
+      "default": "Custom Section Title"
+    },
+    {
+      "type": "range",
+      "id": "mobile_font_size",
+      "min": 10,
+      "max": 64,
+      "step": 2,
+      "unit": "px",
+      "label": "Mobile font size",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "desktop_font_size",
+      "min": 16,
+      "max": 128,
+      "step": 2,
+      "unit": "px",
+      "label": "Desktop font size",
+      "default": 32
+    },
+    {
+      "type":"select",
+      "id":"title_font_weight",
+      "label":"Title Font Weight",
+      "options":[
+        {
+          "value":"200",
+          "label":"Thin"
+        },
+        {
+          "value":"400",
+          "label":"Regular"
+        },
+        {
+          "value":"600",
+          "label":"Semibold"
+        },
+        {
+          "value":"900",
+          "label":"Bold"
+        }
+      ]
+    },
+    {
+      "type": "color",
+      "id": "title_text_color",
+      "label": "Title text color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "CTA Button"
+    },
+    {
+      "type": "text",
+      "id": "cta_button",
+      "label": "CTA Button",
+      "default": "Click me"
+    },
+    {
+      "type": "color",
+      "id": "cta_text_color",
+      "label": "Button text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "cta_bg_color",
+      "label": "Button background color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Section Padding for Desktop"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_desktop",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "label": "section padding top on desktop",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_desktop",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "label": "section padding bottom on desktop",
+      "default": 10
+    },
+    {
+      "type": "header",
+      "content": "Section Padding for Mobile"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "label": "section padding top on mobile",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "label": "section padding bottom on mobile",
+      "default": 30
+    }
+  ],
+  "presets": [
+    {
+      "name": "new custom section"
+    }
+  ]
+}
+{% endschema %}
